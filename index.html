@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Training Tracker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary-red: #dc2626;
+            --primary-red-hover: #b91c1c;
+            --secondary-red: #ef4444;
+            --light-red: #fee2e2;
+            --dark-red: #991b1b;
+            --text-dark: #1f2937;
+            --text-medium: #4b5563;
+            --text-light: #6b7280;
+            --bg-light: #f9fafb;
+            --bg-white: #ffffff;
+            --border-light: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            
+            --text-xs: 11px;
+            --text-sm: 12px;
+            --text-base: 13px;
+            --text-lg: 14px;
+            --text-xl: 16px;
+            --text-2xl: 18px;
+            --text-3xl: 24px;
+            --text-4xl: 28px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            font-size: var(--text-base);
+            line-height: 1.5;
+            color: var(--text-dark);
+            background-color: var(--bg-light);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            background: var(--bg-white);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-light);
+        }
+
+        .header h1 {
+            color: var(--primary-red);
+            font-size: var(--text-3xl);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .header p {
+            color: var(--text-medium);
+            font-size: var(--text-lg);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border-light);
+            background: var(--bg-white);
+            padding: 1rem;
+            border-radius: 12px 12px 0 0;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Georgia', serif;
+            font-size: var(--text-base);
+            font-weight: 500;
+            color: var(--text-medium);
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: var(--primary-red);
+            color: white;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+
+        .tab:hover:not(.active) {
+            background: var(--light-red);
+            color: var(--primary-red);
+        }
+
+        .tab-content {
+            display: none;
+            background: var(--bg-white);
+            padding: 2rem;
+            border-radius: 0 0 12px 12px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-light);
+            border-top: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .upload-section {
+            background: var(--bg-light);
+            padding: 2rem;
+            border-radius: 8px;
+            border: 2px dashed var(--border-light);
+            text-align: center;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: var(--primary-red);
+            background: var(--light-red);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-label {
+            display: inline-block;
+            padding: 0.75rem 2rem;
+            background: var(--primary-red);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Georgia', serif;
+            font-size: var(--text-base);
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+
+        .file-label:hover {
+            background: var(--primary-red-hover);
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-group label {
+            font-size: var(--text-sm);
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .control-group select,
+        .control-group input {
+            padding: 0.75rem;
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            font-family: 'Georgia', serif;
+            font-size: var(--text-sm);
+            background: var(--bg-white);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-red);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Georgia', serif;
+            font-size: var(--text-sm);
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: var(--primary-red-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--text-medium);
+        }
+
+        .btn-secondary:hover {
+            background: var(--text-dark);
+        }
+
+        .search-section {
+            margin-bottom: 1rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            font-family: 'Georgia', serif;
+            font-size: var(--text-sm);
+        }
+
+        .training-form {
+            background: var(--light-red);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            display: none;
+        }
+
+        .training-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-dark);
+            font-size: var(--text-sm);
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            font-family: 'Georgia', serif;
+            font-size: var(--text-sm);
+            background: var(--bg-white);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .selected-employees {
+            background: var(--bg-white);
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border-light);
+        }
+
+        .employee-tag {
+            display: inline-block;
+            background: var(--primary-red);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            margin: 0.25rem;
+            font-size: var(--text-xs);
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-light);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: var(--text-sm);
+            background: var(--bg-white);
+        }
+
+        th {
+            background: var(--primary-red);
+            color: white;
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border-light);
+            vertical-align: top;
+        }
+
+        tr:hover {
+            background: var(--bg-light);
+        }
+
+        .editable {
+            background: transparent;
+            border: none;
+            width: 100%;
+            padding: 0.25rem;
+            font-family: 'Georgia', serif;
+            font-size: var(--text-sm);
+            cursor: text;
+        }
+
+        .editable:focus {
+            background: var(--bg-light);
+            border: 1px solid var(--primary-red);
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .training-cell {
+            min-width: 200px;
+        }
+
+        .training-input {
+            width: 100%;
+            min-height: 60px;
+            resize: vertical;
+            font-family: 'Georgia', serif;
+            font-size: var(--text-sm);
+            padding: 0.5rem;
+            border: 1px solid var(--border-light);
+            border-radius: 4px;
+        }
+
+        .checkbox-cell {
+            text-align: center;
+        }
+
+        .month-year-selector {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .download-section {
+            background: var(--bg-light);
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+        }
+
+        .download-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .option-card {
+            background: var(--bg-white);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+            text-align: center;
+        }
+
+        .option-card h3 {
+            color: var(--primary-red);
+            margin-bottom: 0.5rem;
+            font-size: var(--text-lg);
+        }
+
+        .status-bar {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            background: var(--primary-red);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px 0 0 0;
+            font-size: var(--text-sm);
+            z-index: 1000;
+            display: none;
+        }
+
+        .status-bar.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .tabs {
+                flex-wrap: wrap;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .control-group {
+                width: 100%;
+            }
+        }
+
+        .department-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    background: var(--bg-white);
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    flex-wrap: wrap;
+}
+
+.dept-tab {
+    padding: 0.5rem 1rem;
+    background: var(--bg-light);
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Georgia', serif;
+    font-size: var(--text-sm);
+    color: var(--text-medium);
+    transition: all 0.3s ease;
+}
+
+.dept-tab.active {
+    background: var(--secondary-red);
+    color: white;
+    border-color: var(--secondary-red);
+}
+
+.dept-tab:hover:not(.active) {
+    background: var(--light-red);
+    color: var(--primary-red);
+}
+
+.main-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--border-light);
+    background: var(--bg-white);
+    padding: 1rem;
+    border-radius: 12px 12px 0 0;
+    box-shadow: var(--shadow-sm);
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Employee Training Tracker</h1>
+            <p>Manage and track employee training records efficiently</p>
+        </div>
+
+
+<div class="main-tabs">
+    <button class="tab active" onclick="showMainTab('data-entry')">Data Entry</button>
+    <button class="tab" onclick="showMainTab('batch-training')">Batch Training</button>
+    <button class="tab" onclick="showMainTab('download')">Download Reports</button>
+    <button class="tab" onclick="showMainTab('summary')">Training Summary</button>
+</div>
+
+<!-- Data Entry Tab -->
+<div id="data-entry" class="tab-content active">
+    
+    
+    <!-- File upload section -->
+    <div class="upload-section">
+        <h3 style="margin-bottom: 1rem; color: var(--primary-red);">Upload Excel File</h3>
+        <input type="file" id="file-input" class="file-input" accept=".xlsx,.xls" onchange="handleFileUpload(event)">
+        <label for="file-input" class="file-label">Choose Excel File</label>
+        <p style="margin-top: 1rem; color: var(--text-medium); font-size: var(--text-sm);">
+            Upload your Excel file with employee data. The first 7 columns should be pre-filled.
+        </p>
+    </div>
+
+    <!-- Controls section -->
+    <div class="controls-section">
+        <div class="year-control">
+            <label for="current-year">Year:</label>
+            <input type="number" id="current-year" min="2020" max="2030" value="2025">
+        </div>
+        <div class="all-controls">
+            <button class="btn" onclick="addNewRow()">Add New Row</button>
+            <button class="btn" onclick="addNewColumn()">Add Column</button>
+            <button class="btn btn-secondary" onclick="deleteColumn()">Delete Column</button>
+            <button class="btn" onclick="applyFilters()">Apply Filters</button>
+            <button class="btn btn-secondary" onclick="saveData()">Save Changes</button>
+        </div>
+
+        <!-- Department tabs (initially hidden) -->
+    <div class="department-tabs" id="department-tabs" style="display: none;">
+        <!-- Department tabs will be generated here -->
+    </div>
+    </div>
+
+    <!-- Search section -->
+    <div class="search-section">
+        <input type="text" class="search-input" id="employee-search" placeholder="Search employees by name or personnel number..." onkeyup="searchEmployees()">
+    </div>
+
+    <!-- Table container -->
+    <div class="table-container" id="data-table-container">
+        <!-- Table will be populated here -->
+    </div>
+</div>
+        <!-- Batch Training Tab -->
+        <div id="batch-training" class="tab-content">
+            <h3 style="margin-bottom: 1rem; color: var(--primary-red);">Apply Training to Multiple Employees</h3>
+            
+            <div class="search-section">
+                <input type="text" class="search-input" id="batch-search" placeholder="Search and select employees for batch training..." onkeyup="searchForBatch()">
+                <div id="search-results" style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border-light); border-radius: 6px; margin-top: 0.5rem; display: none;">
+                </div>
+            </div>
+
+            <div class="selected-employees" id="selected-employees">
+                <strong>Selected Employees:</strong>
+                <div id="employee-tags"></div>
+            </div>
+
+            <div class="training-form active">
+                <h4 style="margin-bottom: 1rem; color: var(--primary-red);">Training Details</h4>
+                
+                <div class="form-group">
+                    <label>Core Training</label>
+                    <textarea id="batch-core-training" placeholder="Enter core training details..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Soft Skill Training</label>
+                    <textarea id="batch-soft-training" placeholder="Enter soft skill training details..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Online Platform Training</label>
+                    <textarea id="batch-online-training" placeholder="Enter online platform training details..."></textarea>
+                </div>
+
+                <button class="btn" onclick="applyBatchTraining()">Apply Training to Selected Employees</button>
+            </div>
+        </div>
+
+        <!-- Download Tab -->
+        <div id="download" class="tab-content">
+            <div class="download-section">
+                <h3 style="margin-bottom: 2rem; color: var(--primary-red);">Download Training Reports</h3>
+                
+                
+                    
+                    <div class="control-group">
+                        <label>Select Department</label>
+                        <select id="download-department">
+                            <option value="">All Departments</option>
+                            <option value="Engineering and projects">Engineering and Projects</option>
+                            <option value="Production">Production</option>
+                            <option value="HSE">HSE</option>
+                            <option value="Quality">Quality</option>
+                            <option value="Finance">Finance</option>
+                            <option value="HR">HR</option>
+                            <option value="IT">IT</option>
+                            <option value="SUPPLY CHAIN">Supply Chain</option>
+                            <option value="R&C">R&C</option>
+                            <option value="MARKETING">Marketing</option>
+                            <option value="EXCO'S">EXCO's</option>
+                            <option value="CORPORATE">Corporate</option>
+                            <option value="CORPORATE AFFAIRS">Corporate Affairs</option>
+                            <option value="SALES TEAM">Sales Team</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="download-options">
+                    <div class="option-card">
+                        <h3>Single Department</h3>
+                        <p style="color: var(--text-medium); margin-bottom: 1rem; font-size: var(--text-sm);">Download data for selected department only</p>
+                        <button class="btn" onclick="downloadSingleDepartment()">Download</button>
+                    </div>
+                    
+                    <div class="option-card">
+                        <h3>All Departments</h3>
+                        <p style="color: var(--text-medium); margin-bottom: 1rem; font-size: var(--text-sm);">Download all departments in separate sheets</p>
+                        <button class="btn" onclick="downloadAllDepartments()">Download</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Tab -->
+<div id="summary" class="tab-content">
+    <div class="download-section">
+        <h3 style="margin-bottom: 2rem; color: var(--primary-red);">Training Summary Report</h3>
+        
+        <div style="margin-bottom: 2rem;">
+            <button class="btn" onclick="downloadSummaryReport()">Download Summary Report</button>
+        </div>
+        
+        <div class="table-container" id="summary-table-container">
+            <!-- Summary table will be populated here -->
+        </div>
+    </div>
+</div>
+
+    <div class="status-bar" id="status-bar">
+        Ready
+    </div>
+
+    <script>
+let employeeData = [];
+let filteredData = [];
+let selectedEmployees = new Set();
+let customColumns = []; // Track custom columns
+
+// Data persistence functions
+function saveToLocalStorage() {
+   const dataToSave = {
+       employeeData: employeeData,
+       customColumns: customColumns,
+       lastUploadTime: new Date().toISOString()
+   };
+   localStorage.setItem('employeeTrainingData', JSON.stringify(dataToSave));
+}
+
+function loadFromLocalStorage() {
+   const savedData = localStorage.getItem('employeeTrainingData');
+   if (savedData) {
+       try {
+           const parsed = JSON.parse(savedData);
+           employeeData = parsed.employeeData || [];
+           customColumns = parsed.customColumns || [];
+           
+           if (employeeData.length > 0) {
+               // Recreate department tabs
+               const departments = [...new Set(employeeData.map(emp => emp.department).filter(dept => dept))];
+               createDepartmentTabs(departments);
+               
+               filteredData = [...employeeData];
+               renderTable();
+               showStatus(`Restored ${employeeData.length} employee records from previous session`);
+               return true;
+           }
+       } catch (error) {
+           console.error('Error loading saved data:', error);
+           localStorage.removeItem('employeeTrainingData');
+       }
+   }
+   return false;
+}
+
+function clearStoredData() {
+   if (confirm('This will clear all stored data and require you to upload your file again. Are you sure?')) {
+       localStorage.removeItem('employeeTrainingData');
+       employeeData = [];
+       filteredData = [];
+       customColumns = [];
+       selectedEmployees.clear();
+       document.getElementById('department-tabs').style.display = 'none';
+       renderTable();
+       showStatus('All data cleared');
+   }
+}
+
+function showTab(tabName) {
+   // Hide all tab contents
+   document.querySelectorAll('.tab-content').forEach(content => {
+       content.classList.remove('active');
+   });
+   
+   // Remove active class from all tabs
+   document.querySelectorAll('.tab').forEach(tab => {
+       tab.classList.remove('active');
+   });
+   
+   // Show selected tab content
+   document.getElementById(tabName).classList.add('active');
+   
+   // Add active class to clicked tab
+   event.target.classList.add('active');
+}
+
+function showStatus(message) {
+   const statusBar = document.getElementById('status-bar');
+   statusBar.textContent = message;
+   statusBar.classList.add('show');
+   setTimeout(() => statusBar.classList.remove('show'), 3000);
+}
+
+function handleFileUpload(event) {
+   const file = event.target.files[0];
+   if (!file) return;
+
+   const reader = new FileReader();
+   reader.onload = function(e) {
+       const data = new Uint8Array(e.target.result);
+       const workbook = XLSX.read(data, {type: 'array'});
+       
+       // Read all sheets, not just the first one
+       let allEmployeeData = [];
+       let allDepartments = new Set();
+       
+       workbook.SheetNames.forEach(sheetName => {
+           const worksheet = workbook.Sheets[sheetName];
+           const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+           
+           if (jsonData.length > 1) {
+               const sheetEmployees = parseSheetData(jsonData);
+               allEmployeeData = allEmployeeData.concat(sheetEmployees);
+               
+               // Collect departments
+               sheetEmployees.forEach(emp => {
+                   if (emp.department) allDepartments.add(emp.department);
+               });
+           }
+       });
+       
+       employeeData = allEmployeeData;
+       createDepartmentTabs([...allDepartments]);
+       filteredData = [...employeeData];
+       renderTable();
+       showStatus('File uploaded successfully!');
+       saveToLocalStorage();
+   };
+   reader.readAsArrayBuffer(file);
+}
+
+function parseSheetData(data) {
+   if (data.length < 2) return [];
+   
+   const employees = [];
+   for (let i = 1; i < data.length; i++) {
+       if (!data[i] || data[i].length < 3) continue;
+       
+       const employee = {
+           sn: data[i][0] || i,
+           personnelNo: data[i][1] || '',
+           employeeName: data[i][2] || '',
+           department: data[i][3] || '',
+           plant: data[i][4] || '',
+           psGroup: data[i][5] || '',
+           payScaleType: data[i][6] || '',
+           coreTraining: data[i][7] || '',
+           softSkillTraining: data[i][8] || '',
+           onlinePlatform: data[i][9] || '',
+       };
+       employees.push(employee);
+   }
+   
+   return employees;
+}
+
+function createDepartmentTabs(departments) {
+   const tabsContainer = document.getElementById('department-tabs');
+   tabsContainer.innerHTML = '';
+   tabsContainer.style.display = 'flex';
+   
+   // Add "All Departments" tab
+   const allTab = document.createElement('button');
+   allTab.className = 'dept-tab active';
+   allTab.textContent = 'All Departments';
+   allTab.onclick = () => filterByDepartment('');
+   tabsContainer.appendChild(allTab);
+   
+   // Add department tabs
+   departments.forEach(dept => {
+       if (dept) {
+           const tab = document.createElement('button');
+           tab.className = 'dept-tab';
+           tab.textContent = dept;
+           tab.onclick = () => filterByDepartment(dept);
+           tabsContainer.appendChild(tab);
+       }
+   });
+}
+
+function filterByDepartment(department) {
+   // Update active tab
+   document.querySelectorAll('.dept-tab').forEach(tab => {
+       tab.classList.remove('active');
+   });
+   event.target.classList.add('active');
+   
+   // Filter data
+   if (department) {
+       filteredData = employeeData.filter(emp => emp.department === department);
+   } else {
+       filteredData = [...employeeData];
+   }
+   
+   renderTable();
+}
+
+function showMainTab(tabName) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    
+    // Remove active class from all main tabs
+    document.querySelectorAll('.main-tabs .tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Show selected tab content
+    document.getElementById(tabName).classList.add('active');
+    
+    // Add active class to clicked tab
+    event.target.classList.add('active');
+    
+    // Render summary table when summary tab is shown
+    if (tabName === 'summary') {
+        renderSummaryTable();
+    }
+}
+
+function applyFilters() {
+   // Apply department filter if active
+   const activeDeptTab = document.querySelector('.dept-tab.active');
+   if (activeDeptTab && activeDeptTab.textContent !== 'All Departments') {
+       filteredData = employeeData.filter(emp => emp.department === activeDeptTab.textContent);
+   } else {
+       filteredData = [...employeeData];
+   }
+   
+   renderTable();
+   showStatus('Filters applied!');
+}
+
+function searchEmployees() {
+   const searchTerm = document.getElementById('employee-search').value.toLowerCase();
+   
+   if (!searchTerm) {
+       // If no search term, show current department filter or all data
+       const activeDeptTab = document.querySelector('.dept-tab.active');
+       if (activeDeptTab && activeDeptTab.textContent !== 'All Departments') {
+           filteredData = employeeData.filter(emp => emp.department === activeDeptTab.textContent);
+       } else {
+           filteredData = [...employeeData];
+       }
+       renderTable();
+       return;
+   }
+   
+   // Get currently active department
+   const activeDeptTab = document.querySelector('.dept-tab.active');
+   let baseData = employeeData;
+   
+   if (activeDeptTab && activeDeptTab.textContent !== 'All Departments') {
+       baseData = employeeData.filter(emp => emp.department === activeDeptTab.textContent);
+   }
+   
+   // Apply search within the current department filter
+   filteredData = baseData.filter(employee => {
+       return employee.employeeName.toLowerCase().includes(searchTerm) ||
+              employee.personnelNo.toString().toLowerCase().includes(searchTerm);
+   });
+   
+   renderTable();
+}
+
+function renderTable() {
+   const container = document.getElementById('data-table-container');
+   
+   if (filteredData.length === 0) {
+       container.innerHTML = '<p style="text-align: center; color: var(--text-medium); padding: 2rem;">No data to display. Please upload an Excel file first.</p>';
+       return;
+   }
+   
+   let tableHTML = `
+       <table>
+           <thead>
+               <tr>
+                   <th>S/N</th>
+                   <th>Personnel No.</th>
+                   <th>Employee Name</th>
+                   <th>Department</th>
+                   <th>Plant</th>
+                   <th>PS Group</th>
+                   <th>Pay Scale Type</th>
+                   <th class="training-cell">Core Training</th>
+                   <th class="training-cell">Soft Skill Training</th>
+                   <th class="training-cell">Online Platform</th>
+${customColumns.map(col => `<th class="training-cell">${col}</th>`).join('')}
+<th>Actions</th>
+               </tr>
+           </thead>
+           <tbody>
+   `;
+   
+   filteredData.forEach((employee, index) => {
+       tableHTML += `
+           <tr>
+               <td><input class="editable" value="${employee.sn}" onchange="updateEmployee(${index}, 'sn', this.value)"></td>
+               <td><input class="editable" value="${employee.personnelNo}" onchange="updateEmployee(${index}, 'personnelNo', this.value)"></td>
+               <td><input class="editable" value="${employee.employeeName}" onchange="updateEmployee(${index}, 'employeeName', this.value)"></td>
+               <td><input class="editable" value="${employee.department}" onchange="updateEmployee(${index}, 'department', this.value)"></td>
+               <td><input class="editable" value="${employee.plant}" onchange="updateEmployee(${index}, 'plant', this.value)"></td>
+               <td><input class="editable" value="${employee.psGroup}" onchange="updateEmployee(${index}, 'psGroup', this.value)"></td>
+               <td><input class="editable" value="${employee.payScaleType}" onchange="updateEmployee(${index}, 'payScaleType', this.value)"></td>
+               <td><textarea class="training-input" onchange="updateEmployee(${index}, 'coreTraining', this.value)">${employee.coreTraining}</textarea></td>
+               <td><textarea class="training-input" onchange="updateEmployee(${index}, 'softSkillTraining', this.value)">${employee.softSkillTraining}</textarea></td>
+<td><textarea class="training-input" onchange="updateEmployee(${index}, 'onlinePlatform', this.value)">${employee.onlinePlatform}</textarea></td>
+${customColumns.map(col => `<td><textarea class="training-input" onchange="updateEmployee(${index}, '${col}', this.value)">${employee[col] || ''}</textarea></td>`).join('')}
+<td><button class="btn" style="padding: 0.5rem; font-size: var(--text-xs); background: var(--dark-red);" onclick="deleteRow(${index})">Delete</button></td>
+           </tr>
+       `;
+   });
+   
+   tableHTML += '</tbody></table>';
+   container.innerHTML = tableHTML;
+}
+
+function updateEmployee(index, field, value) {
+    if (filteredData[index]) {
+        filteredData[index][field] = value;
+        
+        // Update in main data array too
+        const originalIndex = employeeData.findIndex(emp => 
+            emp.personnelNo === filteredData[index].personnelNo && 
+            emp.employeeName === filteredData[index].employeeName
+        );
+        
+        if (originalIndex !== -1) {
+            employeeData[originalIndex][field] = value;
+        }
+        
+        // Refresh summary if we're on summary tab
+        if (document.getElementById('summary').classList.contains('active')) {
+            renderSummaryTable();
+        }
+        
+        showStatus('Data updated');
+        saveToLocalStorage();
+    }
+}
+
+function addNewRow() {
+   const newEmployee = {
+       sn: employeeData.length + 1,
+       personnelNo: '',
+       employeeName: '',
+       department: '',
+       plant: '',
+       psGroup: '',
+       payScaleType: '',
+       coreTraining: '',
+       softSkillTraining: '',
+       onlinePlatform: ''
+   };
+   
+   // Add custom columns to new employee
+   customColumns.forEach(col => {
+       newEmployee[col] = '';
+   });
+   
+   employeeData.push(newEmployee);
+   filteredData.push(newEmployee);
+   renderTable();
+   showStatus('New row added');
+   saveToLocalStorage();
+}
+
+function deleteRow(index) {
+   if (confirm('Are you sure you want to delete this employee record?')) {
+       const employeeToDelete = filteredData[index];
+       const originalIndex = employeeData.findIndex(emp => 
+           emp.personnelNo === employeeToDelete.personnelNo && 
+           emp.employeeName === employeeToDelete.employeeName
+       );
+       
+       if (originalIndex !== -1) {
+           employeeData.splice(originalIndex, 1);
+       }
+       
+       applyFilters();
+       showStatus('Row deleted');
+       saveToLocalStorage();
+   }
+}
+
+function addNewColumn() {
+   const columnName = prompt('Enter column name:');
+   if (!columnName || columnName.trim() === '') {
+       showStatus('Invalid column name');
+       return;
+   }
+   
+   const cleanColumnName = columnName.trim();
+   
+   // Check if column already exists
+   if (customColumns.includes(cleanColumnName)) {
+       showStatus('Column already exists');
+       return;
+   }
+   
+   customColumns.push(cleanColumnName);
+   
+   // Add the new column to all existing employees
+   employeeData.forEach(emp => {
+       emp[cleanColumnName] = '';
+   });
+   
+   renderTable();
+   showStatus(`Column "${cleanColumnName}" added`);
+   saveToLocalStorage();
+}
+
+function deleteColumn() {
+   if (customColumns.length === 0) {
+       showStatus('No custom columns to delete');
+       return;
+   }
+   
+   const columnToDelete = prompt(`Enter column name to delete. Available columns: ${customColumns.join(', ')}`);
+   if (!columnToDelete || !customColumns.includes(columnToDelete)) {
+       showStatus('Invalid column name');
+       return;
+   }
+   
+   if (!confirm(`Are you sure you want to delete column "${columnToDelete}"?`)) {
+       return;
+   }
+   
+   // Remove from custom columns array
+   customColumns = customColumns.filter(col => col !== columnToDelete);
+   
+   // Remove from all employee data
+   employeeData.forEach(emp => {
+       delete emp[columnToDelete];
+   });
+   
+   renderTable();
+   showStatus(`Column "${columnToDelete}" deleted`);
+   saveToLocalStorage();
+}
+
+function saveData() {
+   // In a real application, this would save to a database
+   saveToLocalStorage();
+   showStatus('Changes saved successfully!');
+}
+
+// Batch Training Functions
+function searchForBatch() {
+   const searchTerm = document.getElementById('batch-search').value.toLowerCase();
+   const resultsContainer = document.getElementById('search-results');
+   
+   if (!searchTerm || searchTerm.length < 2) {
+       resultsContainer.style.display = 'none';
+       return;
+   }
+   
+   const results = employeeData.filter(employee => {
+       const isMatch = employee.employeeName.toLowerCase().includes(searchTerm) ||
+                      employee.personnelNo.toString().toLowerCase().includes(searchTerm) ||
+                      employee.department.toLowerCase().includes(searchTerm);
+       return isMatch && !selectedEmployees.has(employee.personnelNo);
+   });
+   
+   if (results.length === 0) {
+       resultsContainer.innerHTML = '<p style="padding: 1rem; color: var(--text-medium);">No employees found</p>';
+       resultsContainer.style.display = 'block';
+       return;
+   }
+   
+   let resultsHTML = '';
+   results.slice(0, 10).forEach(employee => { // Limit to 10 results
+       resultsHTML += `
+<div style="padding: 0.75rem; border-bottom: 1px solid var(--border-light); cursor: pointer; background: var(--bg-white);" 
+    onclick="selectEmployeeForBatch('${employee.personnelNo}', '${employee.employeeName.replace(/'/g, "\\'")}', '${employee.department.replace(/'/g, "\\'")}')"
+    onmouseover="this.style.background='var(--bg-light)'" 
+    onmouseout="this.style.background='var(--bg-white)'">
+   <strong>${employee.employeeName}</strong> - ${employee.personnelNo}<br>
+   <small style="color: var(--text-medium)">${employee.department}</small>
+</div>
+`;
+   });
+   
+   resultsContainer.innerHTML = resultsHTML;
+   resultsContainer.style.display = 'block';
+}
+
+function selectEmployeeForBatch(personnelNo, employeeName, department) {
+   console.log('Selecting employee:', personnelNo, employeeName, department); // Debug log
+   
+   selectedEmployees.add(personnelNo);
+   console.log('Selected employees set:', selectedEmployees); // Debug log
+   
+   updateSelectedEmployeesDisplay();
+   
+   // Clear search and hide results
+   document.getElementById('batch-search').value = '';
+   document.getElementById('search-results').style.display = 'none';
+   
+   showStatus(`Added ${employeeName} to batch training`);
+}
+
+function updateSelectedEmployeesDisplay() {
+   const container = document.getElementById('employee-tags');
+   console.log('Updating display, selected employees:', selectedEmployees.size); // Debug log
+   
+   if (selectedEmployees.size === 0) {
+       container.innerHTML = '<span style="color: var(--text-medium); font-style: italic;">No employees selected</span>';
+       return;
+   }
+   
+   container.innerHTML = '';
+   
+   selectedEmployees.forEach(personnelNo => {
+       const employee = employeeData.find(emp => emp.personnelNo == personnelNo); // Use == instead of ===
+       console.log('Finding employee with personnelNo:', personnelNo, 'Found:', employee); // Debug log
+       
+       if (employee) {
+           const tag = document.createElement('span');
+           tag.className = 'employee-tag';
+           tag.innerHTML = `${employee.employeeName} (${employee.department}) <span style="cursor: pointer; margin-left: 0.5rem; font-weight: bold;" onclick="removeEmployeeFromBatch('${personnelNo}')" title="Remove">×</span>`;
+           container.appendChild(tag);
+       }
+   });
+}
+
+function removeEmployeeFromBatch(personnelNo) {
+   const employee = employeeData.find(emp => emp.personnelNo === personnelNo);
+   selectedEmployees.delete(personnelNo);
+   updateSelectedEmployeesDisplay();
+   
+   if (employee) {
+       showStatus(`Removed ${employee.employeeName} from batch training`);
+   }
+}
+
+function applyBatchTraining() {
+   if (selectedEmployees.size === 0) {
+       showStatus('Please select employees first');
+       return;
+   }
+   
+   const coreTraining = document.getElementById('batch-core-training').value;
+   const softTraining = document.getElementById('batch-soft-training').value;
+   const onlineTraining = document.getElementById('batch-online-training').value;
+   
+   if (!coreTraining && !softTraining && !onlineTraining) {
+       showStatus('Please enter at least one training detail');
+       return;
+   }
+   
+   let updatedCount = 0;
+   
+   selectedEmployees.forEach(personnelNo => {
+       const employeeIndex = employeeData.findIndex(emp => emp.personnelNo == personnelNo);
+       if (employeeIndex !== -1) {
+           if (coreTraining) {
+               const existing = employeeData[employeeIndex].coreTraining;
+               employeeData[employeeIndex].coreTraining = existing ? 
+                   `${existing}\n${coreTraining}` : coreTraining;
+           }
+           if (softTraining) {
+               const existing = employeeData[employeeIndex].softSkillTraining;
+               employeeData[employeeIndex].softSkillTraining = existing ? 
+                   `${existing}\n${softTraining}` : softTraining;
+           }
+           if (onlineTraining) {
+               const existing = employeeData[employeeIndex].onlinePlatform;
+               employeeData[employeeIndex].onlinePlatform = existing ? 
+                   `${existing}\n${onlineTraining}` : onlineTraining;
+           }
+           updatedCount++;
+       }
+   });
+   
+   // Clear form and selections
+   document.getElementById('batch-core-training').value = '';
+   document.getElementById('batch-soft-training').value = '';
+   document.getElementById('batch-online-training').value = '';
+   selectedEmployees.clear();
+   updateSelectedEmployeesDisplay();
+   
+   // Refresh table if we're on data entry tab
+   applyFilters();
+   
+   showStatus(`Training applied to ${updatedCount} employees!`);
+   saveToLocalStorage();
+   // Refresh summary if we're on summary tab
+if (document.getElementById('summary').classList.contains('active')) {
+    renderSummaryTable();
+}
+}
+
+// Download Functions
+function downloadSingleDepartment() {
+    const department = document.getElementById('download-department').value;
+    
+    if (!department) {
+        showStatus('Please select a department');
+        return;
+    }
+    
+    let filteredDownloadData = [...employeeData].filter(emp => emp.department === department);
+    
+    if (filteredDownloadData.length === 0) {
+        showStatus('No data found for selected department');
+        return;
+    }
+    
+    const wb = XLSX.utils.book_new();
+    const ws = createFormattedWorksheet(filteredDownloadData);
+    XLSX.utils.book_append_sheet(wb, ws, department.substring(0, 31));
+    
+    const fileName = `${department}_Training_Report.xlsx`;
+    XLSX.writeFile(wb, fileName);
+    
+    showStatus(`Downloaded ${filteredDownloadData.length} records`);
+}
+
+function createFormattedWorksheet(data) {
+   const headers = ['S/N', 'Personnel No.', 'Employee Name', 'Department', 'Plant', 'PS Group', 'Pay Scale Type', 'Core Training', 'Soft Skill Training', 'Online Platform', ...customColumns];
+   
+   const wsData = [headers];
+   
+   data.forEach(emp => {
+       const rowData = [
+           emp.sn, emp.personnelNo, emp.employeeName, emp.department, 
+           emp.plant, emp.psGroup, emp.payScaleType, emp.coreTraining, 
+           emp.softSkillTraining, emp.onlinePlatform
+       ];
+       // Add custom column data
+       customColumns.forEach(col => {
+           rowData.push(emp[col] || '');
+       });
+       wsData.push(rowData);
+   });
+   
+   const ws = XLSX.utils.aoa_to_sheet(wsData);
+   
+   // Set column widths
+   const colWidths = [
+       {wch: 8},  // S/N
+       {wch: 15}, // Personnel No
+       {wch: 25}, // Employee Name
+       {wch: 20}, // Department
+       {wch: 15}, // Plant
+       {wch: 15}, // PS Group
+       {wch: 18}, // Pay Scale Type
+       {wch: 30}, // Core Training
+       {wch: 30}, // Soft Skill Training
+       {wch: 25}  // Online Platform
+   ];
+   ws['!cols'] = colWidths;
+   
+   // Style the header row
+   const headerStyle = {
+       fill: {fgColor: {rgb: "DC2626"}},
+       font: {color: {rgb: "FFFFFF"}, bold: true},
+       alignment: {horizontal: "center", vertical: "center"}
+   };
+   
+   // Apply header styling
+   headers.forEach((header, index) => {
+       const cellAddress = XLSX.utils.encode_cell({r: 0, c: index});
+       if (!ws[cellAddress]) ws[cellAddress] = {};
+       ws[cellAddress].s = headerStyle;
+   });
+   
+   return ws;
+}
+
+function downloadAllDepartments() {
+    if (employeeData.length === 0) {
+        showStatus('No data available to download');
+        return;
+    }
+    
+    const wb = XLSX.utils.book_new();
+    const departments = [...new Set(employeeData.map(emp => emp.department))];
+    
+    departments.forEach(department => {
+        const deptData = employeeData.filter(emp => emp.department === department);
+        
+        if (deptData.length > 0) {
+            const ws = createFormattedWorksheet(deptData);
+            const sheetName = department.substring(0, 31).replace(/[\\/:*?"<>|]/g, '_');
+            XLSX.utils.book_append_sheet(wb, ws, sheetName);
+        }
+    });
+    
+    const fileName = `All_Departments_Training_Report.xlsx`;
+    XLSX.writeFile(wb, fileName);
+    
+    showStatus(`Downloaded data for ${departments.length} departments`);
+}
+
+function getMonthName(monthNum) {
+   const months = [
+       'January', 'February', 'March', 'April', 'May', 'June',
+       'July', 'August', 'September', 'October', 'November', 'December'
+   ];
+   return months[parseInt(monthNum) - 1];
+}
+
+function generateSummaryData() {
+    if (employeeData.length === 0) return [];
+    
+    const departments = [...new Set(employeeData.map(emp => emp.department))].filter(dept => dept);
+    const summaryData = [];
+    
+    departments.forEach(department => {
+        const deptEmployees = employeeData.filter(emp => emp.department === department);
+        const numberOfEmployees = deptEmployees.length;
+        const plannedTrainings = numberOfEmployees; // Same as number of employees
+        
+        const numberTrained = deptEmployees.filter(emp => {
+            return (emp.coreTraining && emp.coreTraining.trim()) ||
+                   (emp.softSkillTraining && emp.softSkillTraining.trim()) ||
+                   (emp.onlinePlatform && emp.onlinePlatform.trim());
+        }).length;
+        
+        const notTrained = numberOfEmployees - numberTrained;
+        const percentPlanned = plannedTrainings > 0 ? ((plannedTrainings / numberOfEmployees) * 100).toFixed(0) : 0;
+        const percentAchieved = numberOfEmployees > 0 ? ((numberTrained / numberOfEmployees) * 100).toFixed(0) : 0;
+        
+        summaryData.push({
+            department,
+            numberOfEmployees,
+            plannedTrainings,
+            numberTrained,
+            notTrained,
+            percentPlanned: percentPlanned + '%',
+            percentAchieved: percentAchieved + '%'
+        });
+    });
+    
+    // Calculate totals
+    const totals = {
+        department: 'Total',
+        numberOfEmployees: summaryData.reduce((sum, row) => sum + row.numberOfEmployees, 0),
+        plannedTrainings: summaryData.reduce((sum, row) => sum + row.plannedTrainings, 0),
+        numberTrained: summaryData.reduce((sum, row) => sum + row.numberTrained, 0),
+        notTrained: summaryData.reduce((sum, row) => sum + row.notTrained, 0),
+        percentPlanned: '',
+        percentAchieved: ''
+    };
+    
+    // Calculate total percentages
+    totals.percentPlanned = totals.numberOfEmployees > 0 ? 
+        ((totals.plannedTrainings / totals.numberOfEmployees) * 100).toFixed(0) + '%' : '0%';
+    totals.percentAchieved = totals.numberOfEmployees > 0 ? 
+        ((totals.numberTrained / totals.numberOfEmployees) * 100).toFixed(0) + '%' : '0%';
+    
+    summaryData.push(totals);
+    return summaryData;
+}
+
+function renderSummaryTable() {
+    const container = document.getElementById('summary-table-container');
+    const summaryData = generateSummaryData();
+    
+    if (summaryData.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--text-medium); padding: 2rem;">No data available for summary. Please upload employee data first.</p>';
+        return;
+    }
+    
+    let tableHTML = `
+        <table>
+            <thead>
+                <tr>
+                    <th>Department</th>
+                    <th>Number of Employees</th>
+                    <th>Planned Trainings</th>
+                    <th>Number Trained</th>
+                    <th>Not Trained</th>
+                    <th>% Planned</th>
+                    <th>% Achieved</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    summaryData.forEach((row, index) => {
+        const isTotal = row.department === 'Total';
+        const rowClass = isTotal ? 'style="background: var(--light-red); font-weight: bold;"' : '';
+        
+        // Color coding for % Achieved
+        let achievedColor = '';
+        if (!isTotal && row.percentAchieved !== '0%') {
+            const percentage = parseInt(row.percentAchieved);
+            if (percentage >= 80) achievedColor = 'color: green;';
+            else if (percentage >= 50) achievedColor = 'color: orange;';
+            else achievedColor = 'color: red;';
+        }
+        
+        tableHTML += `
+            <tr ${rowClass}>
+                <td>${row.department}</td>
+                <td style="text-align: center;">${row.numberOfEmployees}</td>
+                <td style="text-align: center;">${row.plannedTrainings}</td>
+                <td style="text-align: center;">${row.numberTrained}</td>
+                <td style="text-align: center;">${row.notTrained}</td>
+                <td style="text-align: center;">${row.percentPlanned}</td>
+                <td style="text-align: center; ${achievedColor}">${row.percentAchieved}</td>
+            </tr>
+        `;
+    });
+    
+    tableHTML += '</tbody></table>';
+    container.innerHTML = tableHTML;
+}
+
+function downloadSummaryReport() {
+    const summaryData = generateSummaryData();
+    
+    if (summaryData.length === 0) {
+        showStatus('No data available for summary report');
+        return;
+    }
+    
+    const headers = ['Department', 'Number of Employees', 'Planned Trainings', 'Number Trained', 'Not Trained', '% Planned', '% Achieved'];
+    const wsData = [headers];
+    
+    summaryData.forEach(row => {
+        wsData.push([
+            row.department,
+            row.numberOfEmployees,
+            row.plannedTrainings,
+            row.numberTrained,
+            row.notTrained,
+            row.percentPlanned,
+            row.percentAchieved
+        ]);
+    });
+    
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    
+    // Set column widths
+    const colWidths = [
+        {wch: 25}, // Department
+        {wch: 18}, // Number of Employees
+        {wch: 18}, // Planned Trainings
+        {wch: 15}, // Number Trained
+        {wch: 12}, // Not Trained
+        {wch: 12}, // % Planned
+        {wch: 12}  // % Achieved
+    ];
+    ws['!cols'] = colWidths;
+    
+    // Style the header row
+    const headerStyle = {
+        fill: {fgColor: {rgb: "DC2626"}},
+        font: {color: {rgb: "FFFFFF"}, bold: true},
+        alignment: {horizontal: "center", vertical: "center"}
+    };
+    
+    // Apply header styling
+    headers.forEach((header, index) => {
+        const cellAddress = XLSX.utils.encode_cell({r: 0, c: index});
+        if (!ws[cellAddress]) ws[cellAddress] = {};
+        ws[cellAddress].s = headerStyle;
+    });
+    
+    XLSX.utils.book_append_sheet(wb, ws, 'Training Summary');
+    
+    const fileName = `Training_Summary_Report.xlsx`;
+    XLSX.writeFile(wb, fileName);
+    
+    showStatus('Summary report downloaded successfully!');
+}
+
+// Initialize application on page load
+document.addEventListener('DOMContentLoaded', function() {
+   const dataLoaded = loadFromLocalStorage();
+   if (!dataLoaded) {
+       renderTable(); // This will show the "No data" message
+       showStatus('Welcome! Upload your Excel file to get started');
+   }
+   updateSelectedEmployeesDisplay();
+});
+    </script>
+</body>
+</html>
